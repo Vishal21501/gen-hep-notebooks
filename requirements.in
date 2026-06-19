@@ -1,0 +1,42 @@
+# Human-readable ask. Freeze on the GPU provisioning box:
+#   pip install -r requirements.in && pip freeze > requirements.lock.txt
+# (requirements.lock.txt is generated there, with the resolved CUDA wheels, and
+#  is the file that goes to the school — see README "Environment".)
+#
+# Dev/extension packages for building on these notebooks (zuko flows, geomloss OT
+# losses, plotly, pytorch-lightning, wandb) live in requirements-dev.txt — they
+# are NOT shipped to students.
+
+# --- core ML (GPU build — students have GPUs) ---
+torch              # default CUDA wheel (resolves to 2.12.x + nvidia-cuda-* libs)
+torchvision        # listed for completeness; not currently imported by any notebook
+
+# --- plotting / imaging (every notebook; pulled by jetnet too, but pinned here
+#     so the ask doesn't rely on jetnet's dependency tree) ---
+matplotlib         # all plots: jet-mass spine, displays, PCA, samples
+pillow             # PIL — AFHQ image decode/resize in notebook 01
+
+# --- diffusion tooling ---
+diffusers          # UNet + schedulers for the creature-sprite & calorimeter diffusion notebooks
+                   # pulls huggingface_hub, safetensors, regex  (NOT transformers — core only)
+
+# --- HEP / generative ---
+jetnet             # JetNet datasets + eval metrics (FPD/KPD/W1/FPND/coverage/MMD) + EMD loss
+                   # pulls coffea, dask, awkward, uproot, vector, hist, energyflow,
+                   #        wasserstein, mplhep, h5py, numba, ipywidgets, tqdm, matplotlib
+datasets           # HuggingFace datasets — real AFHQ animal faces for notebook 01
+scikit-learn       # utilities / baseline classifiers
+scipy              # stats / two-sample tests / distances
+imageio            # GIFs: denoising trajectory, GAN training, latent walks
+h5py               # CaloChallenge HDF5 (capstone Dataset 2). Also pulled by jetnet,
+                   # but the capstone reads it directly, so pin it explicitly.
+
+# --- provided by the GNN section's environment (assume present) ---
+# torch_geometric  # real point-cloud GNNs for jet models + the capstone classifier (2.8.x)
+                   # compiled extras (torch-scatter/sparse) come from the GNN env if a layer needs them
+
+# --- our tooling ---
+cadence-edu        # our Jupyter plugin (autoregister + scaffold). Confirm pip-vs-git + pin a version.
+
+# --- pin ---
+numpy<2            # HEP stack requires numpy 1.x; resolver lands on 1.26.4

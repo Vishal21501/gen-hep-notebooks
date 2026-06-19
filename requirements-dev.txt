@@ -1,0 +1,24 @@
+# Optional packages for DEVELOPING / EXTENDING the notebooks.
+#
+# NOT needed to run the current student notebooks, and NOT part of the
+# requirements.lock.txt that goes to the school. Install in your own dev env:
+#
+#     pip install -r requirements-dev.txt
+#
+# (Assumes torch is already installed — geomloss and pytorch-lightning need it.)
+
+zuko               # normalizing flows in PyTorch — the natural 4th generative family
+                   # (the curriculum has students seeing flows + SBI in parallel)
+
+geomloss           # GPU Sinkhorn / Wasserstein / EMD losses. A permutation-invariant
+                   # set loss for jets (the proper fix for the jet-VAE MSE problem) and
+                   # the canonical jet distance. Faster on GPU with pykeops (optional).
+
+plotly             # interactive 3D — jet event displays + calorimeter voxels (DS2 is a
+                   # real 3D grid). cadence accepts Plotly figures as plot submissions,
+                   # so it drops straight into the capstone.
+
+pytorch-lightning  # structured training loops / multi-GPU / checkpointing for your own
+                   # experiments. Keep the *student-facing* code plain torch for clarity.
+
+wandb              # experiment tracking while you tune models.

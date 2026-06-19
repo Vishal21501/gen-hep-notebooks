@@ -1,0 +1,66 @@
+# Conda/micromamba environment for the HSF-India ML course (the `ml` branch of
+# courses-hsf-india-tifr2026, binder/environment.yml). This is the EXISTING course
+# env plus the generative-modelling track's additions (marked below). Drop it into
+# the course repo's binder/environment.yml on the `ml` branch; the image must be
+# rebuilt from that branch for the changes to land.
+name: hsf-india-ml
+channels:
+  - nvidia/label/cuda-13.2
+  - conda-forge
+dependencies:
+  - python=3.12
+  - bash_kernel
+  - grpcio
+  - numpy<2
+  - pandas
+  - scipy
+  - hdf5
+  - lz4
+  - matplotlib
+  #- numba
+  - openssh
+  - pandas
+  - pip
+  - scikit-learn
+  - transformers
+  - peft
+  - bitsandbytes
+  - trl
+  - datasets
+  - pytorch
+  - torch-geometric
+  - torchvision
+
+  # --- added for the generative-ML track (conda-forge) ---
+  - imageio              # denoising / training GIFs (nb 02, 03)
+  - plotly               # interactive plots
+  - pytorch-lightning    # training loops
+  - wandb                # experiment tracking
+  # GNN compiled extras — DynamicEdgeConv (nb 05 classifier) needs torch-cluster's
+  # knn. These must match the pytorch CUDA build; on CUDA 13.2 they may be fiddly.
+  # The notebooks fall back to a DeepSets encoder if these are absent, so they're
+  # "better path, not required" — drop any that won't solve.
+  - pytorch-cluster
+  - pytorch-scatter
+  - pytorch-sparse
+
+  - pip:
+      - h5py
+      #- tensorboard
+      #- tensorflow[and-cuda]
+      ##- tensorrt
+      #- tqdm
+      - jax[cuda13]
+      - nvidia-cudnn-cu13
+      - xgboost
+      - omnilearned
+
+      # --- added for the generative-ML track (pip / PyPI-only) ---
+      - diffusers        # UNet + schedulers — REQUIRED for nb 03/04 + the capstone
+      - jetnet           # JetNet datasets + FPD/KPD/W1 — REQUIRED for nb 01/02/05/06
+      - zuko             # normalizing flows
+      - geomloss         # Sinkhorn / optimal-transport losses
+      # (geomloss is much faster with pykeops; add `pykeops` here if you want it)
+
+variables:
+  LD_LIBRARY_PATH: "'$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/'"
