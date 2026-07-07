@@ -97,6 +97,13 @@ def load_model(particle="electron"):
     saved = torch.load(os.path.join(_VENDOR, "trained_models", p["ckpt"]),
                        map_location=DEVICE, weights_only=False)
     m.load_state_dict(saved.get("model_state_dict", saved) if isinstance(saved, dict) else saved)
+    # The diffusion schedule tensors are plain attributes (not buffers), so `.to(DEVICE)`
+    # above didn't move them; put them on the model's device so GPU runs work.
+    for _n in ("betas", "alphas", "alphas_cumprod", "sqrt_recip_alphas",
+               "sqrt_alphas_cumprod", "sqrt_one_minus_alphas_cumprod", "posterior_variance"):
+        _v = getattr(m, _n, None)
+        if torch.is_tensor(_v):
+            setattr(m, _n, _v.to(DEVICE))
     m._particle, m._orig_shape, m.config = particle, orig_shape, cfg
     return m
 

@@ -90,7 +90,7 @@ class Residual(nn.Module):
 
 def extract(a, t, x_shape):
     batch_size = t.shape[0]
-    out = a.gather(-1, t.cpu())
+    out = a.gather(-1, t.to(a.device))          # index on the same device as `a`
     return out.reshape(batch_size, *((1,) * (len(x_shape) - 1))).to(t.device)
 
 
