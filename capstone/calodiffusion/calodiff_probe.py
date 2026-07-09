@@ -165,10 +165,10 @@ def sample(model, E, num_steps=None, sample_offset=2, debug=False):
 
 @torch.no_grad()
 def regular_grid(model, x):
-    """Model-space x -> (N, layers, angular, radial) numpy in the *regular* geometry.
-    This is the space where the layer axis is shower depth, for ALL particles:
-    electron is already regular; photon/pion are GLaM-mapped from their irregular voxels.
-    Great for plotting and for the depth/energy-conditioning exercises."""
+    """Model-space (preprocessed) x -> (N, layers, angular, radial) numpy in the regular
+    geometry, via the GLaM encoder. This is for **model-space** tensors (e.g. visualising a
+    preprocessed frame). For PHYSICS on physical showers use `to_physical_grid` instead —
+    feeding physical GeV values here runs the trained encoder and distorts them."""
     t = x if torch.is_tensor(x) else torch.as_tensor(np.asarray(x), dtype=torch.float32, device=DEVICE)
     if model.NN_embed is not None:              # DS1: encode irregular -> regular grid
         t = model.NN_embed.enc(t).to(DEVICE)
@@ -192,6 +192,27 @@ def to_physical(model, x, E_inc_gev):
     if not model._orig_shape:
         voxels = voxels.reshape(-1, *cfg["SHAPE_PAD"][1:]).squeeze(1)
     return voxels
+
+
+def to_physical_grid(model, x, E_inc_gev):
+    """Physical shower on a REGULAR (N, layer, angular, radial) grid, for EVERY particle.
+    **Use this — not regular_grid — for physics observables** (depth, radial spread, occupancy).
+
+    The result is real deposited energy in GeV: non-negative and energy-conserving.
+    - electron (DS2) is already regular, so this is just `to_physical`.
+    - photon/pion (DS1) have an irregular geometry; this rebins their native voxels onto a
+      regular grid using the model's *geometric* converter (area-proportional, no trained
+      weights). Note `regular_grid()` instead runs the trained GLaM encoder, which is meant
+      for model-space tensors — on physical values it produces negative, non-conserving
+      "energies" and is wrong for physics.
+    """
+    phys = to_physical(model, x, E_inc_gev)          # native layout, physical GeV
+    if model.NN_embed is None:                       # DS2: already a regular grid
+        return phys                                  # (N, 45, 16, 9)
+    gc = model.NN_embed.gc                            # geometric converter (area weights, no learning)
+    flat = torch.as_tensor(phys.reshape(phys.shape[0], -1), dtype=torch.float32)
+    grid = gc.convert(gc.reshape(flat))              # (N, layers, alpha, r) — physical & conserved
+    return np.asarray(grid.detach().cpu())
 
 
 def _e_to_gev(e_scaled, cfg):
